@@ -198,7 +198,9 @@ TBLPROPERTIES(
 );
 ```
 
-### 7. Make sure you are able to query the table without any errors. Table is empty at this point but if you get any errors when you do a select *, check /var/log/hive/user/hadoop/hive.log
+### 7. Make sure you are able to query the table without any errors. 
+
+Table is empty at this point but if you get any errors when you do a select *, check /var/log/hive/user/hadoop/hive.log
 
 ### 8. Try to insert test data  (optional)
 
