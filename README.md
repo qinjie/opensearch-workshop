@@ -7,4 +7,4 @@ The repository is organized as follows:
 * [Python Scripts folder](py-files): helper files for the workshop. 
 * [Elasticsearch to OpenSearch commands](elastic-os-commands.md): contains commands and procedure to migrate from OSS Elasticsearch 5.6 OSS ES 6.8 (min version required to migrate to Amazon OS). 
 * [SOLR to OpenSearch commands](solr-commands.md): migration from SOLR using elasticsearch-hadoop library from Elastic. 
-* 
+
