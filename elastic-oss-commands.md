@@ -1,10 +1,8 @@
-**OSS Elasticsearch 5.6 to Amazon Opensearch 1.2** <br>
-**//////////////////////////////////////////////////////** <br>
+## OSS Elasticsearch 5.6 to Amazon Opensearch 1.
 
-**Upgrade from OSS ES 5.6 to OSS ES 6.8 (min version required to migrate to Amazon OS)** <br>
+### Upgrade from OSS ES 5.6 to OSS ES 6.8 (min version required to migrate to Amazon OS)
 
-*Step 0 - Building OSS Elasticsearch cluster* <br>
-*------------------------------------------------------------* <br>
+#### Step 0 - Building OSS Elasticsearch cluster
 
 Create 3 x Amazon Linux 2 EC2 instances and run the following commands on all of them.
 
@@ -215,8 +213,7 @@ curl -X GET "127.0.0.1:9200/data_sentiment/_count"
 
 ```
 
-*Step 1 - Take a snapshot of your OSS Elasticsearch cluster (Optional)* <br>
-*------------------------------------------------------------* <br>
+#### Step 1 - Take a snapshot of your OSS Elasticsearch cluster (Optional)
 
 Run the below commands on all nodes. To take snapshot of OSS ES 5.6 cluster for disaster recovery during rolling upgrade.
 
@@ -267,8 +264,7 @@ curl -X GET "`hostname -f`:9200/_snapshot/s3_backup/snapshot_1?pretty=true"
 
 ```
 
-*Step 2 - Perform Rolling Upgrades from 5.x to 6.x* <br>
-*-----------------------------------------------------* <br>
+#### Step 2 - Perform Rolling Upgrades from 5.x to 6.x
 
 Rolling upgrade involves upgrading ES version one node at a time and re-starting. Please note that if you do not want any downtime, you need to make sure that number of mandated masters is less than total number of masters - 1.
 
@@ -411,8 +407,7 @@ $ES_HOME/bin/elasticsearch > ~/elastic-6.out 2>&1 &
 
 ```
 
-*Step 3 - Re-index documents* <br>
-*----------------------------* <br>
+#### Step 3 - Re-index documents
 
 Since we moved from 5.x to 6.x, we need to re-index the documents. The clients will work fine without this step but it may cause some compatibility issues down the line. For instance, datatype “string” has to be changed to “text”. This step will take a while to complete based on the index size.
 
@@ -471,8 +466,7 @@ curl -XPUT http://`hostname -f`:9200/_snapshot/s3_backup -H 'Content-Type: appli
 
 ```
 
-*Step 4 - Test Client program (Optional)* <br>
-*----------------------------------------* <br>
+#### Step 4 - Test Client program (Optional)
 
 Run client twitter API program and verify that there are no errors or see if the count is getting increased
 
@@ -481,10 +475,9 @@ curl -X GET "localhost:9200/data_sentiment-6/_count"
 
 ```
 
-**Migrate from OSS Elasticsearch 6.8 to Opensearch 1.2** <br>
-**-----------------------------------------------------** <br>
+### Migrate from OSS Elasticsearch 6.8 to Opensearch 1.2
 
-*Step 5 - Create OpenSearch cluster* <br>
+#### Step 5 - Create OpenSearch cluster 
 *----------------------------------------* <br>
 
 In Amazon OpenSearch Management Console, create your Amazon OpenSearch 1.2 domain within a VPC. I used master user with password to make it easy. But it is very much recommended to use IAM credentials with SAML or AWS Cognito or FGAC. Please refer to this documentation (https://docs.aws.amazon.com/opensearch-service/latest/developerguide/dashboards.html) for more details.
@@ -500,8 +493,7 @@ Access the cluster and dashboards in browser.
 https://localhost:9200
 https://localhost:9200/_dashboards
 
-*Step 6 - Take a snapshot of source index* <br>
-*----------------------------------------* <br>
+#### Step 6 - Take a snapshot of source index
 
 First step is to take snapshot of the source OSS cluster. This time, we will change the snapshot name to snapshot_2.
 
@@ -529,8 +521,7 @@ curl -XPUT http://`hostname -f`:9200/_snapshot/s3_backup_2 -H 'Content-Type: app
 
 You can restore snapshot directly from S3 using _restore API. But it will be a point-in-time snapshot.
 
-*Step 7 - Configure role mapping for manual snapshot* <br>
-*-----------------------------------------------------* <br>
+#### Step 7 - Configure role mapping for manual snapshot
 
 1. Create an IAM role “opensearch-s3-role” with permissions to the S3 location where we stored the snapshot
 ```
@@ -626,8 +617,7 @@ curl -XPOST -u 'admin:Test123$' 'https://vpc-opensearch-domain-66-2cojbcwgonrbsg
 
 ```
 
-*Step 8 - Create an S3 repository in Opensearch cluster* <br>
-*-----------------------------------------------------* <br>
+#### Step 8 - Create an S3 repository in Opensearch cluster
 
 Login to the ES client and install required packages.
 
@@ -677,8 +667,7 @@ It should return 200 OK. You should be able to see the snapshot we took from OSS
 
 curl -XGET -u 'admin:Test123$' 'https://vpc-opensearch-domain-66-2cojbcwgonrbsgwadq524hrgoi.us-east-1.es.amazonaws.com:443/_snapshot/s3-repository/snapshot_2/'
 
-*Step 9 - Restore from snapshot* <br>
-*--------------------------------* <br>
+#### Step 9 - Restore from snapshot
 
 Now let’s restore the index “data_sentiment”. We cannot restore other indexes because we did not reindex them from OSS Elasticsearch 5.6.16 to 6.8. However, you can restore all indexes at the same time if you re-indexed all of them to 6.8.
 
@@ -712,8 +701,7 @@ print(r.text)
 
 ```
 
-*Step 10 - Validate Restoration* <br>
-*--------------------------------* <br>
+#### Step 10 - Validate Restoration
 
 Verify the count of documents between source and destination
 
@@ -918,10 +906,9 @@ curl -X GET -u 'admin:Test123$' 'https://vpc-opensearch-domain-66-2cojbcwgonrbsg
 
 ```
 
-**Amazon Elasticsearch <= 7.1 to Amazon Opensearch** <br>
-**/////////////////////////////////////////////////** <br>
+### Amazon Elasticsearch <= 7.1 to Amazon Opensearch
 
-1. Create an index in Open-distro Elasticsearch 5.6
+#### 1. Create an index in Open-distro Elasticsearch 5.6
 
 ```
 curl -XDELETE 'https://vpc-opensearch-domain-66-2cojbcwgonrbsgwadq524hrgoi.us-east-1.es.amazonaws.com:443/data_sentiment'
@@ -989,7 +976,7 @@ curl -X GET 'https://vpc-open-distro-es-5-6-lgpve2ddaggepo5jk4ozxszlja.us-east-1
 
 ```
 
-2. Upgrade in UI to Amazon Elasticsearch 6.8 and perform write during upgrade
+#### 2. Upgrade in UI to Amazon Elasticsearch 6.8 and perform write during upgrade
 
 ```
 python3 es-5.6.py
