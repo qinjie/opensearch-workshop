@@ -3,7 +3,9 @@
 
 ### Step 0 - Install SolrCloud on EC2
 
-Create 3 X EC2 instances and install Apache Solr on them.
+Create 3 X EC2 instances in the same subnet.
+
+Install Apache Solr on them.
 
 ```
 sudo yum install java-11-amazon-corretto -y
@@ -45,6 +47,11 @@ bash zkServer.sh start
 
 service solr start
 ```
+
+Configure the secrity group of all 3 instances to 
+1/ open all ports to each other.
+2/ open port 8983 to computer which will access Solr Dashboard.
+
 
 ### Step 1 - Setup Solr Server and Client
 
