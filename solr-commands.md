@@ -55,13 +55,22 @@ cd /opt/zookeeper/bin
 bash zkServer.sh start
 
 service solr start
+
+exit
 ```
 
 
 ### Step 1 - Setup Solr Server and Client
 
 1. Login to EC2 instance “oss-elasticsearch-client-host“
-2. Install required dependencies
+2. Install `pip3`
+
+```
+curl -O https://bootstrap.pypa.io/get-pip.py
+python3 get-pip.py 
+```
+
+3. Install required dependencies
 
 ```
 pip3 install pysolr
