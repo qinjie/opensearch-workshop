@@ -3,7 +3,14 @@
 
 ### Step 0 - Install SolrCloud on EC2
 
-Create 3 X EC2 instances in the same subnet.
+Create 3 EC2 instances
+
+- Recommend to use `t3.small` instance type.
+- Recommend to label them `solr-node-1`, `solr-node-2` and `solr-node-3`.
+- Place them in the same subnet so that they can communicate with each other using private IP. 
+- Configure the secrity group of the 3 instances to open all ports to each other.
+- Choose one node, open its port 8983 to the host which will access Solr Dashboard.
+- Get the private IP address of all 3 instances.
 
 Install Apache Solr on them.
 
@@ -13,44 +20,42 @@ java -version
 
 sudo su
 cd ~
+
+# Install Solr
+
 wget http://archive.apache.org/dist/lucene/solr/8.6.2/solr-8.6.2.tgz
-wget https://archive.apache.org/dist/zookeeper/zookeeper-3.5.7/apache-zookeeper-3.5.7-bin.tar.gz
-
 tar xfvz solr*.tgz
-tar xfvz apache-zookeeper-*.tar.gz
-
 cd solr-*/bin
 ./install_solr_service.sh /root/solr*.tgz -n
 
-sed -i "s|#SOLR_HOST.*|SOLR_HOST=`curl -s http://169.254.169.254/latest/meta-data/public-hostname`|g" /etc/default/solr.in.sh
+vim /etc/default/solr.in.sh
+# Replace the ZK_HOST value with private IP address of the 3 instances.
+ZK_HOST="NODE1_PRIVATE_IP:2181,NODE2_PRIVATE_IP:2181,NODE3_PRIVATE_IP:2181"
 
-# Replace with your EC2 instances public DNS
-sed -i 's|#ZK_HOST.*|ZK_HOST="ec2-18-212-174-25.compute-1.amazonaws.com:2181,ec2-54-91-128-241.compute-1.amazonaws.com:2181,ec2-54-81-141-240.compute-1.amazonaws.com:2181"|g' /etc/default/solr.in.sh
+# Setup Zookeeper
 
-
+wget https://archive.apache.org/dist/zookeeper/zookeeper-3.5.7/apache-zookeeper-3.5.7-bin.tar.gz
+tar xfvz apache-zookeeper-*.tar.gz
 mv /root/apache-zookeeper-*-bin /opt/zookeeper
 cd /opt/zookeeper
 mkdir /opt/zookeeper/data
 
 # Change to 2 and 3 for solr-node-2 and solr-node-3 respectively
 echo "1" > /opt/zookeeper/data/myid
-
+ 
 cp /opt/zookeeper/conf/zoo_sample.cfg /opt/zookeeper/conf/zoo.cfg
 sed -i 's|#autopurge|autopurge|g' /opt/zookeeper/conf/zoo.cfg
 sed -i 's|dataDir.*|dataDir=/opt/zookeeper/data|g' /opt/zookeeper/conf/zoo.cfg
-echo "server.1=ec2-18-212-174-25.compute-1.amazonaws.com:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
-echo "server.2=ec2-54-91-128-241.compute-1.amazonaws.com:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
-echo "server.3=ec2-54-81-141-240.compute-1.amazonaws.com:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
+# Replace NODE1_PRIVATE_IP with actual private IP of solr-node-1, and so on
+echo "server.1=NODE1_PRIVATE_IP:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
+echo "server.2=NODE2_PRIVATE_IP:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
+echo "server.3=NODE3_PRIVATE_IP:2888:3888" >> /opt/zookeeper/conf/zoo.cfg
 
 cd /opt/zookeeper/bin
 bash zkServer.sh start
 
 service solr start
 ```
-
-Configure the secrity group of all 3 instances to 
-1/ open all ports to each other.
-2/ open port 8983 to computer which will access Solr Dashboard.
 
 
 ### Step 1 - Setup Solr Server and Client
