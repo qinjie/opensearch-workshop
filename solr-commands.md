@@ -12,6 +12,11 @@ Create 3 EC2 instances
 - Choose one node, open its port 8983 to the host which will access Solr Dashboard.
 - Get the private IP address of all 3 instances.
 
+Create 1 EC2 instances as client with label `oss-elasticsearch-client-host`.
+
+- Preferably to be in the same subnet as above 3 EC2 instances.
+
+
 Install Apache Solr on them.
 
 ```
@@ -63,6 +68,35 @@ exit
 ### Step 1 - Setup Solr Server and Client
 
 1. Login to EC2 instance “oss-elasticsearch-client-host“
+
+3. Create a Solr collection using Collection API. Replace SOLR_NODE_1 with the private or public IP address of `solr-node-1`.
+
+```
+curl "http://SOLR_NODE_1:8983/solr/admin/collections?action=CREATE&name=data_sentiment&numShards=1&replicationFactor=3&collection.configName=_default"
+```
+
+4. Add 5 following fields with field type. Leave other stuff defaulted. Replace SOLR_NODE_1 with the private or public IP address of `solr-node-1`.
+   - tweet_tstamp: string
+   - user_name: string
+   - polarity: pdouble
+   - subjectivity: pdouble
+   - sentiment: string
+
+```
+curl -X POST 'http://SOLR_NODE_1:8983/solr/data_sentiment/sch
+ema' -H 'Content-type:application/json' -d '{
+    "add-field": [
+      {"name":"tweet_tstamp", "type":"string", "stored":true},
+      {"name":"user_name", "type":"string", "stored":true},
+      {"name":"polarity", "type":"pdouble", "stored":true},
+      {"name":"subjectivity", "type":"pdouble", "stored":true},
+      {"name":"sentiment", "type":"string", "stored":true}
+    ]
+  }'
+```
+
+5. Examine the collection and schema on Solr Dashboard. Replace SOLR_NODE_1_PUBLIC_IP with public IP of `solr-node-1`: `http://SOLR_NODE_1_PUBLIC_IP:8983/solr`
+
 2. Install `pip3`
 
 ```
@@ -74,29 +108,6 @@ python3 get-pip.py
 
 ```
 pip3 install pysolr
-
-```
-
-3. Create a Solr core on one of the Solr EC2 instances
-
-```
-sudo su
-/opt/solr-8.6.2/bin/solr delete -c data_sentiment
-/opt/solr-8.6.2/bin/solr create -c data_sentiment -force
-/opt/solr-8.6.2/bin/solr stop -all
-service solr start
-
-```
-
-4. Go to Solr UI and select the core that was created. Select schema. We are going to modify the managed schema and add twitter columns using “Add Field”. Add 5 following fields with field type. Leave other stuff defaulted.
-
-```
-    tweet_tstamp: string
-    user_name: string
-    polarity: pdouble
-    subjectivity: pdouble
-    sentiment: string
-
 ```
 
 5. Execute Solr client
